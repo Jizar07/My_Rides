@@ -2,8 +2,6 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
-    id("dagger.hilt.android.plugin")  // Added for Hilt support
-    kotlin("kapt")                   // Added for annotation processing
 }
 
 
@@ -36,9 +34,6 @@ android {
     }
     kotlinOptions {
         jvmTarget = "11"
-    }
-    kapt {
-        correctErrorTypes = true
     }
 
     buildFeatures {
@@ -79,10 +74,6 @@ dependencies {
     implementation(libs.kotlinx.coroutines.core.v160)
     implementation(libs.androidx.ui.v140)
     implementation(libs.androidx.runtime.v140)
-
-    // Hilt dependencies
-    implementation("com.google.dagger:hilt-android:2.44")
-    kapt("com.google.dagger:hilt-compiler:2.44")
 
     implementation(libs.ui.tooling.preview)
     debugImplementation(libs.ui.tooling)

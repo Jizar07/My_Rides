@@ -15,9 +15,9 @@ import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import com.example.myrides.R
 import com.google.android.gms.location.*
-import dagger.hilt.android.AndroidEntryPoint
 
-@AndroidEntryPoint
+
+//@AndroidEntryPoint
 class LocationUpdatesService : Service() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient
