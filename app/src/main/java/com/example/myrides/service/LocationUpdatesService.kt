@@ -1,4 +1,4 @@
-package com.example.myrides
+package com.example.myrides.service
 
 import android.Manifest
 import android.app.Notification
@@ -13,8 +13,11 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
+import com.example.myrides.R
 import com.google.android.gms.location.*
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class LocationUpdatesService : Service() {
 
     private lateinit var fusedLocationClient: FusedLocationProviderClient

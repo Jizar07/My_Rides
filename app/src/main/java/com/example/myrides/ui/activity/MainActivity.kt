@@ -1,13 +1,15 @@
-package com.example.myrides
+package com.example.myrides.ui.activity
 
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.example.myrides.ui.CombinedScreen
+import com.example.myrides.ui.screen.CombinedScreen
 import com.example.myrides.ui.theme.MyRidesTheme
-import com.example.myrides.LocationUpdatesService  // Ensure this import matches your package structure
+import com.example.myrides.service.LocationUpdatesService
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

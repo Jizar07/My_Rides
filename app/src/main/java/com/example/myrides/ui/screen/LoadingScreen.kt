@@ -1,4 +1,4 @@
-package com.example.myrides.ui
+package com.example.myrides.ui.screen
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween

@@ -2,7 +2,10 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("dagger.hilt.android.plugin")  // Added for Hilt support
+    kotlin("kapt")                   // Added for annotation processing
 }
+
 
 android {
     namespace = "com.example.myrides"
@@ -74,7 +77,8 @@ dependencies {
     implementation(libs.androidx.runtime.v140)
 
 
-
+    implementation(libs.hilt.android)
+    kapt(libs.hilt.compiler)
 
     implementation(libs.ui.tooling.preview)
     debugImplementation(libs.ui.tooling)

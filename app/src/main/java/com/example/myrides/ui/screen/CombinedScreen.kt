@@ -1,4 +1,4 @@
-package com.example.myrides.ui
+package com.example.myrides.ui.screen
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
