@@ -1,9 +1,8 @@
 pluginManagement {
     repositories {
-        google()
+        google()  // Ensure Google repository is included
         mavenCentral()
         gradlePluginPortal()
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
     }
 }
 
