@@ -37,6 +37,10 @@ android {
     kotlinOptions {
         jvmTarget = "11"
     }
+    kapt {
+        correctErrorTypes = true
+    }
+
     buildFeatures {
         compose = true
     }
@@ -77,8 +81,8 @@ dependencies {
     implementation(libs.androidx.runtime.v140)
 
     // Hilt dependencies
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.compiler)
+    implementation("com.google.dagger:hilt-android:2.44")
+    kapt("com.google.dagger:hilt-compiler:2.44")
 
     implementation(libs.ui.tooling.preview)
     debugImplementation(libs.ui.tooling)
