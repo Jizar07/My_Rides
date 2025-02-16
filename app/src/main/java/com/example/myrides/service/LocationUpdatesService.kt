@@ -115,4 +115,11 @@ class LocationUpdatesService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        // Stop location updates when the app is closed.
+        stopSelf()
+    }
+
 }

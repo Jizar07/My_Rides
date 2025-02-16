@@ -47,6 +47,8 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.converter.moshi)
 
+    implementation ("com.google.android.material:material:1.12.0")
+
     // Google Maps Compose and Play Services
     implementation(libs.maps.compose)
     implementation(libs.play.services.maps)

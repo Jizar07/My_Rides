@@ -1,5 +1,6 @@
 package com.example.myrides.ui.screen
 
+import com.google.android.gms.maps.CameraUpdateFactory
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.Context
@@ -69,6 +70,8 @@ import java.time.DayOfWeek
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.Priority
 import android.os.Looper
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material.icons.filled.Place
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationResult
 
@@ -148,18 +151,34 @@ fun currentLocationViaCallback(): LatLng? {
 // ------------------------------
 // Date Range Helper Function (Local Offset Format)
 // ------------------------------
+
+// FOR WEEKLY EVENTS FETCHER
+//@RequiresApi(Build.VERSION_CODES.O)
+//fun getCurrentWeekRange(): Pair<String, String> {
+//    val zone = ZoneId.of("America/New_York")
+//    val today = LocalDate.now(zone)
+//    val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
+//    val nextMonday = monday.plusDays(7)
+//    val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
+//    val startDateTime = monday.atStartOfDay(zone).format(formatter)
+//    val endDateTime = nextMonday.atStartOfDay(zone).format(formatter)
+//    Log.d("DateRange", "Start: $startDateTime, End: $endDateTime")
+//    return Pair(startDateTime, endDateTime)
+//}
+
+// FOR NEXT 3 DAYS EVENTS FETCHER
 @RequiresApi(Build.VERSION_CODES.O)
-fun getCurrentWeekRange(): Pair<String, String> {
+fun getNextThreeDaysRange(): Pair<String, String> {
     val zone = ZoneId.of("America/New_York")
     val today = LocalDate.now(zone)
-    val monday = today.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY))
-    val nextMonday = monday.plusDays(7)
+    val threeDaysLater = today.plusDays(3)
     val formatter = DateTimeFormatter.ISO_OFFSET_DATE_TIME
-    val startDateTime = monday.atStartOfDay(zone).format(formatter)
-    val endDateTime = nextMonday.atStartOfDay(zone).format(formatter)
-    Log.d("DateRange", "Start: $startDateTime, End: $endDateTime")
+    val startDateTime = today.atStartOfDay(zone).format(formatter)
+    val endDateTime = threeDaysLater.atStartOfDay(zone).format(formatter)
+    Log.d("DateRange", "Next Three Days - Start: $startDateTime, End: $endDateTime")
     return Pair(startDateTime, endDateTime)
 }
+
 
 // ------------------------------
 // Data Class for Social Event
@@ -262,7 +281,9 @@ suspend fun fetchSocialEvents(currentLocation: LatLng, radiusMiles: Double): Lis
     return withContext(Dispatchers.IO) {
         try {
             val service = TicketmasterService.create()
-            val (startDateTime, endDateTime) = getCurrentWeekRange()
+            //val (startDateTime, endDateTime) = getCurrentWeekRange()
+            val (startDateTime, endDateTime) = getNextThreeDaysRange()
+
             Log.d("Ticketmaster", "Fetching events with startDateTime: $startDateTime, endDateTime: $endDateTime")
             val response = service.getEvents(
                 apiKey = "vGsATDpC11wAdA15Bj6qgBoYs34ZBpeE",
@@ -423,6 +444,7 @@ fun MapScreen() {
     LaunchedEffect(Unit) {
         com.google.android.gms.maps.MapsInitializer.initialize(context)
     }
+
     val fusedLocationClient: FusedLocationProviderClient =
         LocationServices.getFusedLocationProviderClient(context)
 
@@ -462,8 +484,13 @@ fun MapScreen() {
     val locationPermissionState =
         rememberPermissionState(Manifest.permission.ACCESS_FINE_LOCATION)
 
-    var isDarkModeEnabled by remember { mutableStateOf(false) }
+//    var isDarkModeEnabled by remember { mutableStateOf(false) }
+    var isDarkModeEnabled = isSystemInDarkTheme()
+
     var showEvents by remember { mutableStateOf(true) }
+    var showPOIs by remember { mutableStateOf(true) }
+
+
     val darkMapStyle = try {
         MapStyleOptions.loadRawResourceStyle(context, R.raw.map_style_dark)
     } catch (e: Exception) {
@@ -497,13 +524,13 @@ fun MapScreen() {
             liveLocation?.let { deviceLocation ->
                 if (!initialCentered) {
                     // Center the camera only on the first update.
-                    cameraPositionState.position = CameraPosition.fromLatLngZoom(deviceLocation, 12f)
+                    cameraPositionState.position = CameraPosition.fromLatLngZoom(deviceLocation, 15f)
                     initialCentered = true
                 }
                 // Only update camera if we've moved more than the threshold.
                 if (lastCameraUpdateLocation == null ||
                     distanceBetween(lastCameraUpdateLocation!!, deviceLocation) > cameraUpdateThresholdMeters) {
-                    cameraPositionState.position = CameraPosition.fromLatLngZoom(deviceLocation, 12f)
+                    //cameraPositionState.position = CameraPosition.fromLatLngZoom(deviceLocation, 12f)
                     lastCameraUpdateLocation = deviceLocation
                 }
                 // Check if we should update POIs based on the movement threshold.
@@ -511,10 +538,14 @@ fun MapScreen() {
                     distanceBetween(lastPOIUpdateLocation!!, deviceLocation) > updateThresholdMeters) {
 
                     // Fetch social events using the device location.
-                    socialEvents = fetchSocialEvents(deviceLocation, 100.0)
+                    socialEvents = withContext(Dispatchers.IO) {
+                        fetchSocialEvents(deviceLocation, 100.0)
+                    }
 
                     // Fetch nearby POIs (restaurants, bars, hotels) using the device location.
-                    nearbyPOIs = fetchNearbyPOIs(deviceLocation, 20.0)
+                    nearbyPOIs = withContext(Dispatchers.IO) {
+                        fetchNearbyPOIs(deviceLocation, 20.0)
+                    }
 
                     // Update the last POI update location.
                     lastPOIUpdateLocation = deviceLocation
@@ -599,6 +630,16 @@ fun MapScreen() {
                         onCheckedChange = { showEvents = it }
                     )
                     Spacer(modifier = Modifier.width(16.dp))
+                    Icon(
+                        imageVector = Icons.Default.Place, // import androidx.compose.material.icons.filled.Place
+                        contentDescription = if (showPOIs) "POIs On" else "POIs Off"
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Switch(
+                        checked = showPOIs,
+                        onCheckedChange = { showPOIs = it }
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
                     IconButton(
                         onClick = {
                             liveLocation?.let { deviceLocation ->
@@ -645,6 +686,7 @@ fun MapScreen() {
                                 Marker(
                                     state = MarkerState(position = event.location),
                                     title = event.name,
+                                    snippet = event.description,
                                     icon = socialIcon,
                                     onClick = {
                                         selectedEvent = event
@@ -656,6 +698,7 @@ fun MapScreen() {
                                 Marker(
                                     state = MarkerState(position = event.location),
                                     title = event.name,
+                                    snippet = event.description,
                                     icon = socialIcon,
                                     onClick = {
                                         selectedEvent = event
@@ -670,46 +713,34 @@ fun MapScreen() {
                     val poiIcon = scaledPOIIcon(LocalContext.current, currentZoom)
 
                     // Draw nearby POI markers (restaurants, bars, hotels) with clustering.
-                    val clusters = clusterPOIs(nearbyPOIs, thresholdMeters = 800f)
-                    clusters.forEach { cluster ->
-                        if (cluster.size >= 3) {
-                            // If there are 3 or more POIs in the cluster, show a cluster marker.
-                            val centroid = getClusterCentroid(cluster)
-                            Marker(
-                                state = MarkerState(position = centroid),
-                                title = "Cluster: ${cluster.size} POIs",
-                                icon = poiIcon,
-                                onClick = { false }
-                            )
-                        } else {
-                            // Otherwise, show individual markers.
-                            cluster.forEach { poi ->
-                                val poiLatLng =
-                                    LatLng(poi.geometry.location.lat, poi.geometry.location.lng)
+                    if (showPOIs) {
+                        val clusters = clusterPOIs(nearbyPOIs, thresholdMeters = 800f)
+                        clusters.forEach { cluster ->
+                            if (cluster.size >= 3) {
+                                // If there are 3 or more POIs in the cluster, show a cluster marker.
+                                val centroid = getClusterCentroid(cluster)
                                 Marker(
-                                    state = MarkerState(position = poiLatLng),
-                                    title = poi.name,
+                                    state = MarkerState(position = centroid),
+                                    title = "Cluster: ${cluster.size} POIs",
                                     icon = poiIcon,
                                     onClick = { false }
                                 )
+                            } else {
+                                // Otherwise, show individual markers.
+                                cluster.forEach { poi ->
+                                    val poiLatLng = LatLng(poi.geometry.location.lat, poi.geometry.location.lng)
+                                    Marker(
+                                        state = MarkerState(position = poiLatLng),
+                                        title = poi.name,
+                                        icon = poiIcon,
+                                        onClick = { false }
+                                    )
+                                }
                             }
                         }
                     }
                 }
                 }
-
-                    // Draw nearby POI markers (restaurants, bars, hotels) in yellow.
-//                    nearbyPOIs.forEach { poi ->
-//                        val poiLatLng = LatLng(poi.geometry.location.lat, poi.geometry.location.lng)
-//                        Marker(
-//                            state = MarkerState(position = poiLatLng),
-//                            title = poi.name,
-//                            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW),
-//                            onClick = { false }
-//                        )
-//                    }
-//                }
-//            }
 
             // Footer overlay for future functions.
             Box(

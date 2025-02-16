@@ -7,6 +7,7 @@ import androidx.compose.runtime.remember
 import kotlinx.coroutines.delay
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 
 
@@ -17,7 +18,7 @@ import androidx.compose.runtime.setValue
  */
 @Composable
 fun CombinedScreen() {
-    var showMap by remember { mutableStateOf(false) }
+    var showMap by rememberSaveable { mutableStateOf(false) }
 
     // Wait for 5 seconds, then update the state to show the map.
     LaunchedEffect(Unit) {
